@@ -76,8 +76,8 @@ class BarcodeScannerViewController: UIViewController {
     navigationItem.leftBarButtonItem = UIBarButtonItem(title: config.strings["cancel"],
                                                         style: .plain,
                                                         target: self,
-                                                        action: #selector(cancel)
-    )
+                                                        action: #selector(cancel))
+    navigationController?.navigationBar.tintColor = UIColor.white
     updateToggleFlashButton()
   }
   
@@ -100,6 +100,12 @@ class BarcodeScannerViewController: UIViewController {
     })
   }
   
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated);
+        navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
+        navigationController?.navigationBar.shadowImage = UIImage()
+    }
+
   override func viewWillDisappear(_ animated: Bool) {
     scanner?.stopScanning()
     scanRect?.stopAnimating()
