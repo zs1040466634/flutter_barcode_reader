@@ -5,6 +5,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.FrameLayout
+import android.widget.TextView
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.Result
 import me.dm7.barcodescanner.zxing.ZXingScannerView
@@ -44,8 +46,9 @@ class BarcodeScannerActivity : Activity(), ZXingScannerView.ResultHandler {
     // region Activity lifecycle
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        setContentView(R.layout.activity_bar_code_scanner)
         config = Protos.Configuration.parseFrom(intent.extras!!.getByteArray(EXTRA_CONFIG))
+        setupScannerView()
     }
 
     private fun setupScannerView() {
@@ -61,43 +64,37 @@ class BarcodeScannerActivity : Activity(), ZXingScannerView.ResultHandler {
             }
 
             // this parameter will make your HUAWEI phone works great!
-            setAspectTolerance(config.android.aspectTolerance.toFloat())
+//            setAspectTolerance(config.android.aspectTolerance.toFloat())
             if (config.autoEnableFlash) {
                 flash = config.autoEnableFlash
                 invalidateOptionsMenu()
             }
         }
+        val container: FrameLayout = findViewById(R.id.container)
+        container.addView(scannerView, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
 
-        setContentView(scannerView)
+        setUpBtns()
     }
 
-    // region AppBar menu
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+    private fun setUpBtns() {
+        val btnCancel: TextView = findViewById(R.id.btn_cancel)
+        val btnFlash: TextView = findViewById(R.id.btn_flash)
+
         var buttonText = config.stringsMap["flash_on"]
         if (scannerView?.flash == true) {
             buttonText = config.stringsMap["flash_off"]
         }
-        val flashButton = menu.add(0, TOGGLE_FLASH, 0, buttonText)
-        flashButton.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        btnFlash.text = buttonText
+        btnCancel.text = config.stringsMap["cancel"]
 
-        val cancelButton = menu.add(0, CANCEL, 0, config.stringsMap["cancel"])
-        cancelButton.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
-
-        return super.onCreateOptionsMenu(menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == TOGGLE_FLASH) {
+        btnFlash.setOnClickListener {
             scannerView?.toggleFlash()
-            this.invalidateOptionsMenu()
-            return true
+            setUpBtns()
         }
-        if (item.itemId == CANCEL) {
+        btnCancel.setOnClickListener {
             setResult(RESULT_CANCELED)
             finish()
-            return true
         }
-        return super.onOptionsItemSelected(item)
     }
 
     override fun onPause() {
@@ -107,7 +104,7 @@ class BarcodeScannerActivity : Activity(), ZXingScannerView.ResultHandler {
 
     override fun onResume() {
         super.onResume()
-        setupScannerView()
+//        setupScannerView()
         scannerView?.setResultHandler(this)
         if (config.useCamera > -1) {
             scannerView?.startCamera(config.useCamera)
